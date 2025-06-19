@@ -51,6 +51,15 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
         }
 
         $this->loadModuleRoutes();
+        
+        $this->loadMigrations();
+    }
+
+    protected function loadMigrations()
+    {
+        foreach (glob(App::path('Modules/*/Infrastructure/Database/Migrations'), GLOB_ONLYDIR) as $path) {
+            $this->loadMigrationsFrom($path);
+        }   
     }
 
     protected function loadModuleRoutes(): void
