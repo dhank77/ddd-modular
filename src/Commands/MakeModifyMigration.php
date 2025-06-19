@@ -47,7 +47,7 @@ class MakeModifyMigration extends Command
 
     protected function generateModifyMigration($module, $table, $addColumn, $renameColumn, $dropColumn, $modifyColumn)
     {
-        $basePath = App::appPath("Modules/{$module}");
+        $basePath = App::path("Modules/{$module}");
         $path = "{$basePath}/Infrastructure/Database/Migrations";
 
         if (! File::exists($path)) {

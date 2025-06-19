@@ -14,7 +14,7 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $modulesPath = App::appPath('Modules');
+        $modulesPath = App::path('Modules');
 
         foreach (File::directories($modulesPath) as $moduleDir) {
             $moduleName = basename($moduleDir);
@@ -56,7 +56,7 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
     protected function loadModuleRoutes(): void
     {
         globRecursive(
-            App::appPath('Modules/*/Interface/Routes/{web,api}.php'),
+            App::path('Modules/*/Interface/Routes/{web,api}.php'),
             function (string $routeFile) {
                 require $routeFile;
             }
