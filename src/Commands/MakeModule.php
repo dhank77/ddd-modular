@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendor\DDDModularToolkit\Commands;
+namespace Hitech\DDDModularToolkit\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;

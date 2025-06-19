@@ -1,10 +1,10 @@
 {
-    "name": "vendor/ddd-modular-toolkit",
+    "name": "hitech/ddd-modular-toolkit",
     "description": "A Laravel DDD Modular Toolkit for feature-based architecture.",
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Vendor\\DDDModularToolkit\\": "src/"
+            "Hitech\\DDDModularToolkit\\": "src/"
         },
         "files": [
             "src/Helpers/PathHelper.php"
@@ -13,7 +13,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Vendor\\DDDModularToolkit\\Providers\\DDDModularToolkitServiceProvider"
+                "Hitech\\DDDModularToolkit\\Providers\\DDDModularToolkitServiceProvider"
             ]
         }
     },

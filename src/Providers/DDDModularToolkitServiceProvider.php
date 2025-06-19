@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Vendor\DDDModularToolkit\Providers;
+namespace Hitech\DDDModularToolkit\Providers;
 
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
-use Vendor\DDDModularToolkit\Commands\MakeModifyMigration;
-use Vendor\DDDModularToolkit\Commands\MakeModule;
+use Hitech\DDDModularToolkit\Commands\MakeModifyMigration;
+use Hitech\DDDModularToolkit\Commands\MakeModule;
 
 class DDDModularToolkitServiceProvider extends ServiceProvider
 {
