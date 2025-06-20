@@ -9,6 +9,7 @@ use Hitech\DDDModularToolkit\Commands\MakeModifyMigration;
 use Hitech\DDDModularToolkit\Commands\MakeModule;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 
 class DDDModularToolkitServiceProvider extends ServiceProvider
 {
@@ -80,11 +81,21 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
             return;
         }
         
-        globRecursive(
-            App::path('Modules/*/Interface/Routes/{web,api}.php'),
-            function (string $routeFile) {
-                require $routeFile;
-            }
-        );
+        Route::middleware('web')->group(function () {
+            globRecursive(
+                App::path('Modules/*/Interface/Routes/web.php'),
+                function (string $routeFile) {
+                    require $routeFile;
+                }
+            );
+        });
+        Route::middleware('api')->group(function () {
+            globRecursive(
+                App::path('Modules/*/Interface/Routes/api.php'),
+                function (string $routeFile) {
+                    require $routeFile;
+                }
+            );
+        });
     }
 }
