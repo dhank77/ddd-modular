@@ -1,6 +1,6 @@
-## 🛠️ Artisan Commands to Generate DDD Module Files
+## 🛠️ Toolkit to Generate DDD Module Files
 
-This package provides custom Artisan commands to help you generate files based on **Domain-Driven Design (DDD)** architecture.
+This package provides custom toolkit to help you generate files based on **Domain-Driven Design (DDD)** architecture.
 
 ### 📦 Installation
 
@@ -11,6 +11,33 @@ composer require hitech/ddd-modular-toolkit
 ```
 
 ---
+
+### Publish Configuration
+
+```bash
+# Publish all files
+php artisan vendor:publish --provider="Hitech\DddModularToolkit\Providers\DddModularToolkitServiceProvider"
+
+# Or publish separately
+php artisan vendor:publish --tag=config
+```
+
+## ⚙️ Configuration Options
+
+The `ddd.php` configuration file allows you to customize various aspects of the DDD Modular Toolkit. Below is a summary of the available options:
+
+| Option | Description | Default Value |
+|---|---|---|
+| `blade.is_active` | Enables or disables Blade templating for modules. | `true` |
+| `blade.path` | Defines the custom path for Blade views within modules. | `Blades` |
+| `react.is_active` | Enables or disables React templating for modules (coming soon). | `true` |
+| `react.path` | Defines the custom path for React views within modules. | `Views` |
+| `middleware.auth` | Applies authentication middleware to module routes. | `false` |
+| `middleware.api` | Applies API middleware to module routes. | `false` |
+
+
+---
+
 
 ## 📁 Module Folder Structure (DDD Style)
 
@@ -56,7 +83,7 @@ php artisan make:module {name}:{submodule} [options]
 **Options:**
 
 * `--A|--all` : Generate all components (default)
-* `--D|--data` : Generate data-related files
+* `--D|--data` : Generate data-related files (should install [laravel-data](https://spatie.be/docs/laravel-data/v4/introduction))
 * `--Y|--dto` : Generate DTO (Data Transfer Object)
 * `--M|--migration` : Generate migration file
 * `--O|--model` : Generate model
@@ -124,5 +151,45 @@ php artisan modify:migration Order orders --ac=notes:text --dc=old_field
 ```
 
 ---
-### github.com/dhank77
-## HITECH AKSARA DIGITAL
+
+## 📋 Requirements
+
+- PHP ^8.1
+- Laravel ^12.19
+- Illuminate Support ^12.19
+- Illuminate Console ^12.19
+- Illuminate Database ^12.19
+
+## 🤝 Contributing
+
+Contributions are highly welcome! Please:
+
+1. Fork this repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## 👨‍💻 Author
+
+**dhank77**
+- Email: d41113512@gmail.com
+
+## 🙏 Acknowledgments
+
+- Laravel Community
+- All contributors who have helped
+
+---
+
+<div align="center">
+
+**Made with ❤️ for Laravel Community**
+
+[⭐ Star this repo](https://github.com/hitech/ddd-modular) | [🐛 Report Bug](https://github.com/hitech/ddd-modular/issues) | [💡 Request Feature](https://github.com/hitech/ddd-modular/issues)
+
+</div>

@@ -58,6 +58,8 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
         $this->loadModuleRoutes();
         
         $this->loadMigrations();
+
+        $this->loadBlade();
     }
 
     protected function loadMigrations()
@@ -81,7 +83,13 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
             return;
         }
         
-        Route::middleware('web')->group(function () {
+        $middleWare = ['web'];
+        
+        if (config('ddd.middleware.auth')) {
+            $middleWare[] = 'auth';
+        }
+
+        Route::middleware($middleWare)->group(function () {
             globRecursive(
                 App::path('Modules/*/Interface/Routes/web.php'),
                 function (string $routeFile) {
@@ -89,13 +97,26 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
                 }
             );
         });
-        Route::middleware('api')->group(function () {
-            globRecursive(
-                App::path('Modules/*/Interface/Routes/api.php'),
-                function (string $routeFile) {
-                    require $routeFile;
-                }
+
+        if (config('ddd.middleware.api')) {
+            Route::middleware('api')->group(function () {
+                globRecursive(
+                    App::path('Modules/*/Interface/Routes/api.php'),
+                    function (string $routeFile) {
+                        require $routeFile;
+                    }
+                );
+            });
+        }
+    }
+
+    protected function loadBlade(): void
+    {
+        if (config('ddd.blade.is_active')) {
+            $this->loadViewsFrom(
+                App::path('Modules/*/Interface/' . config('ddd.blade.path')),
+                'Modules'
             );
-        });
+        }
     }
 }
