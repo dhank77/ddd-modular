@@ -54,13 +54,14 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
                 MakeModifyMigration::class,
             ]);
 
-            $this->publishes(
-                [
-                    __DIR__ . '/../../config/ddd.php' => App::configPath('ddd.php'),
-                ],
-                ['ddd', 'ddd-config']
-            );
         }
+        
+        $this->publishes(
+            [
+                __DIR__ . '/../../config/ddd.php' => App::configPath('ddd.php'),
+            ],
+            ['ddd', 'ddd-config']
+        );
 
         $this->mergeConfigFrom(__DIR__ . '/../../config/ddd.php', 'ddd');
 
