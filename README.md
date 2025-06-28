@@ -19,7 +19,7 @@ composer require hitech/ddd-modular-toolkit
 php artisan vendor:publish --provider="Hitech\DddModularToolkit\Providers\DddModularToolkitServiceProvider"
 
 # Or publish separately
-php artisan vendor:publish --tag=config
+php artisan vendor:publish --tag=ddd-config
 ```
 
 ## ⚙️ Configuration Options
