@@ -58,7 +58,7 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
                 [
                     __DIR__ . '/../../config/ddd.php' => App::configPath('ddd.php'),
                 ],
-                'ddd-config'
+                ['ddd', 'ddd-config']
             );
         }
 
