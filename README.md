@@ -67,6 +67,8 @@ app/
             ├── Requests/           # Form Request classes with validation + toDTO()
             ├── Resources/          # API resource formatters
             └── Routes/             # Module-specific route definitions
+            └── Views/              # Module-specific react files
+            └── Blades/             # Module-specific blade files
 ```
 
 > Each folder serves a clear role in enforcing separation of concerns, maintainability, and scalability across your Laravel application.
