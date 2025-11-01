@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\App;
 class MakeModule extends Command
 {
     protected $signature = 'make:modulefiles
-        {name : Module name}
+        {name : Module name (format: ModuleName:SubDir/FileName or ModuleName:FileName)}
         {--A|all : Generate all components}
         {--D|data : Generate data}
         {--Y|dto : Generate DTO}
@@ -28,19 +28,33 @@ class MakeModule extends Command
 
     protected $basePath;
     protected $moduleName;
+    protected $subDir;
     protected $fileName;
 
     public function handle()
     {
         $nameArg = $this->argument('name');
+        
+        // Parse the name argument to extract module name, subdirectory, and file name
         if (strpos($nameArg, ':') !== false) {
-            [$module, $controller] = explode(':', $nameArg, 2);
+            [$module, $filePart] = explode(':', $nameArg, 2);
             $this->moduleName = Str::studly($module);
-            $this->fileName = Str::studly($controller);
+            
+            // Check if filePart contains subdirectory
+            if (strpos($filePart, '/') !== false) {
+                $parts = explode('/', $filePart);
+                $this->fileName = Str::studly(array_pop($parts)); // Last part is the file name
+                $this->subDir = implode('/', array_map([Str::class, 'studly'], $parts)); // Convert subdirs to StudlyCase
+            } else {
+                $this->fileName = Str::studly($filePart);
+                $this->subDir = '';
+            }
         } else {
             $this->moduleName = Str::studly($nameArg);
             $this->fileName = $this->moduleName;
+            $this->subDir = '';
         }
+        
         $this->basePath = App::basePath("app/Modules/{$this->moduleName}");
 
         if ($this->option('all')) {
@@ -98,21 +112,12 @@ class MakeModule extends Command
         }
     }
 
-    protected function generateAll()
-    {
-        $this->generateData();
-        $this->generateMigration();
-        $this->generateModel();
-        $this->generateRepository();
-        $this->generateService();
-        $this->generateController();
-        $this->generateResource();
-        $this->generateRoute();
-    }
-
     protected function generateData()
     {
         $path = "{$this->basePath}/Application/Data";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = "{$this->fileName}Data";
@@ -124,12 +129,18 @@ class MakeModule extends Command
             return;
         }
 
+        // Build namespace with subdirectory support
+        $namespace = "App\\Modules\\{$this->moduleName}\\Application\\Data";
+        if ($this->subDir) {
+            $namespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Application\\Data;
+namespace {$namespace};
 
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Attributes\Validation\Min;
@@ -152,6 +163,9 @@ PHP;
     protected function generateDTO()
     {
         $path = "{$this->basePath}/Application/DTO";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = "{$this->fileName}DTO";
@@ -163,12 +177,18 @@ PHP;
             return;
         }
 
+        // Build namespace with subdirectory support
+        $namespace = "App\\Modules\\{$this->moduleName}\\Application\\DTO";
+        if ($this->subDir) {
+            $namespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Application\\DTO;
+namespace {$namespace};
 
 class {$className}
 {
@@ -234,6 +254,9 @@ PHP;
     protected function generateModel()
     {
         $path = "{$this->basePath}/Infrastructure/Database/Models";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = Str::singular($this->fileName);
@@ -246,12 +269,18 @@ PHP;
             return;
         }
 
+        // Build namespace with subdirectory support
+        $namespace = "App\\Modules\\{$this->moduleName}\\Infrastructure\\Database\\Models";
+        if ($this->subDir) {
+            $namespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Infrastructure\\Database\\Models;
+namespace {$namespace};
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -271,22 +300,36 @@ PHP;
 
     protected function generateRepository()
     {
-        $path = "{$this->basePath}/Infrastructure/Repositories";
-        $this->makeDirectory($path);
-
+        // Contracts path with subdirectory support
         $interfacePath = "{$this->basePath}/Domain/Contracts";
+        if ($this->subDir) {
+            $interfacePath .= "/{$this->subDir}";
+        }
         $this->makeDirectory($interfacePath);
+
+        // Repositories path with subdirectory support
+        $path = "{$this->basePath}/Infrastructure/Repositories";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
+        $this->makeDirectory($path);
 
         $interfaceName = "{$this->fileName}RepositoryInterface.php";
         $interfaceFile = "{$interfacePath}/{$interfaceName}";
 
         if (! File::exists($interfaceFile)) {
+            // Build interface namespace with subdirectory support
+            $interfaceNamespace = "App\\Modules\\{$this->moduleName}\\Domain\\Contracts";
+            if ($this->subDir) {
+                $interfaceNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+            }
+
             $interfaceContent = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Domain\\Contracts;
+namespace {$interfaceNamespace};
 
 interface {$this->fileName}RepositoryInterface
 {
@@ -310,16 +353,35 @@ PHP;
         }
 
         $modelName = Str::singular($this->fileName);
-        $modelClass = "App\\Modules\\{$this->moduleName}\\Infrastructure\\Database\\Models\\" . $modelName;
+        
+        // Build model namespace with subdirectory support
+        $modelNamespace = "App\\Modules\\{$this->moduleName}\\Infrastructure\\Database\\Models";
+        if ($this->subDir) {
+            $modelNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+        $modelClass = "{$modelNamespace}\\" . $modelName;
+
+        // Build interface namespace for use in repository
+        $interfaceNamespace = "App\\Modules\\{$this->moduleName}\\Domain\\Contracts";
+        if ($this->subDir) {
+            $interfaceNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+        $interfaceFullClass = "{$interfaceNamespace}\\{$this->fileName}RepositoryInterface";
+
+        // Build repository namespace
+        $repositoryNamespace = "App\\Modules\\{$this->moduleName}\\Infrastructure\\Repositories";
+        if ($this->subDir) {
+            $repositoryNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
 
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Infrastructure\\Repositories;
+namespace {$repositoryNamespace};
 
-use App\\Modules\\{$this->moduleName}\\Domain\\Contracts\\{$this->fileName}RepositoryInterface;
+use {$interfaceFullClass};
 use {$modelClass};
 
 class {$className} implements {$this->fileName}RepositoryInterface
@@ -339,6 +401,9 @@ PHP;
     protected function generateService()
     {
         $path = "{$this->basePath}/Application/Services";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = "{$this->fileName}Service";
@@ -350,14 +415,25 @@ PHP;
             return;
         }
 
-        $repoInterface = "App\\Modules\\{$this->moduleName}\\Domain\\Contracts\\{$this->fileName}RepositoryInterface";
+        // Build interface namespace for use in service
+        $interfaceNamespace = "App\\Modules\\{$this->moduleName}\\Domain\\Contracts";
+        if ($this->subDir) {
+            $interfaceNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+        $repoInterface = "{$interfaceNamespace}\\{$this->fileName}RepositoryInterface";
+
+        // Build service namespace
+        $serviceNamespace = "App\\Modules\\{$this->moduleName}\\Application\\Services";
+        if ($this->subDir) {
+            $serviceNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
 
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Application\\Services;
+namespace {$serviceNamespace};
 
 use {$repoInterface};
 
@@ -377,6 +453,9 @@ PHP;
     protected function generateController()
     {
         $path = "{$this->basePath}/Interface/Controllers";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = $this->fileName . 'Controller';
@@ -388,14 +467,25 @@ PHP;
             return;
         }
 
-        $service = "App\\Modules\\{$this->moduleName}\\Application\\Services\\{$this->fileName}Service";
+        // Build service namespace for use in controller
+        $serviceNamespace = "App\\Modules\\{$this->moduleName}\\Application\\Services";
+        if ($this->subDir) {
+            $serviceNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+        $service = "{$serviceNamespace}\\{$this->fileName}Service";
+
+        // Build controller namespace
+        $controllerNamespace = "App\\Modules\\{$this->moduleName}\\Interface\\Controllers";
+        if ($this->subDir) {
+            $controllerNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
 
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Interface\\Controllers;
+namespace {$controllerNamespace};
 
 use App\Http\Controllers\Controller;
 use {$service};
@@ -418,6 +508,9 @@ PHP;
     protected function generateRequest()
     {
         $path = "{$this->basePath}/Interface/Requests";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = 'Submit' . $this->fileName . 'Request';
@@ -429,14 +522,25 @@ PHP;
             return;
         }
 
-        $dto = "App\\Modules\\{$this->moduleName}\\Application\\DTO\\{$this->moduleName}DTO";
+        // Build DTO namespace for use in request
+        $dtoNamespace = "App\\Modules\\{$this->moduleName}\\Application\\DTO";
+        if ($this->subDir) {
+            $dtoNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+        $dto = "{$dtoNamespace}\\{$this->fileName}DTO";
+
+        // Build request namespace
+        $requestNamespace = "App\\Modules\\{$this->moduleName}\\Interface\\Requests";
+        if ($this->subDir) {
+            $requestNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
 
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Interface\\Requests;
+namespace {$requestNamespace};
 
 use Illuminate\Foundation\Http\FormRequest;
 use {$dto};
@@ -455,9 +559,9 @@ class {$className} extends FormRequest
         ];
     }
 
-    public function toDTO(): {$this->moduleName}DTO
+    public function toDTO(): {$this->fileName}DTO
     {
-        return new {$this->moduleName}DTO(
+        return new {$this->fileName}DTO(
             id: \$this->input('id', 0),
             name: \$this->input('name'),
         );
@@ -473,6 +577,9 @@ PHP;
     protected function generateResource()
     {
         $path = "{$this->basePath}/Interface/Resources";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
         $this->makeDirectory($path);
 
         $className = $this->fileName . 'Resources';
@@ -484,12 +591,18 @@ PHP;
             return;
         }
 
+        // Build resource namespace
+        $resourceNamespace = "App\\Modules\\{$this->moduleName}\\Interface\\Resources";
+        if ($this->subDir) {
+            $resourceNamespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+
         $content = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace App\\Modules\\{$this->moduleName}\\Interface\\Resources;
+namespace {$resourceNamespace};
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
@@ -543,7 +656,15 @@ PHP;
     protected function generateSeeder()
     {
         $path = "{$this->basePath}/Infrastructure/Database/Seeders";
+        if ($this->subDir) {
+            $path .= "/{$this->subDir}";
+        }
+        
         $namespace = "App\\Modules\\{$this->moduleName}\\Infrastructure\\Database\\Seeders";
+        if ($this->subDir) {
+            $namespace .= "\\" . str_replace('/', '\\', $this->subDir);
+        }
+        
         $className = "{$this->fileName}Seeder";
         $stub = <<<STUB
 <?php
@@ -605,5 +726,17 @@ STUB;
     protected function camelCase($string)
     {
         return lcfirst(Str::studly($string));
+    }
+    
+    protected function generateAll()
+    {
+        $this->generateData();
+        $this->generateMigration();
+        $this->generateModel();
+        $this->generateRepository();
+        $this->generateService();
+        $this->generateController();
+        $this->generateResource();
+        $this->generateRoute();
     }
 }
