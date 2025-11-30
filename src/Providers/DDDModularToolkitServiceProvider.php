@@ -107,8 +107,10 @@ class DDDModularToolkitServiceProvider extends ServiceProvider
         $contractFiles = File::allFiles($contractsPath);
         
         foreach ($contractFiles as $contractFile) {
-            // Get the relative path from the contracts directory
-            $relativePath = str_replace($contractsPath . '/', '', $contractFile->getPathname());
+            $relativePath = $contractFile->getRelativePathname(); 
+        
+            // normalize to forward slash
+            $relativePath = str_replace(['\\', '/'], '/', $relativePath);
             $relativePath = str_replace('.php', '', $relativePath);
 
             // Get the interface name (filename without extension)
